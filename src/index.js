@@ -13,30 +13,37 @@ function draw() {
 
 draw();
 
-var synth = new Tone.PluckSynth().toMaster()
+var pluckSynth = new Tone.PluckSynth().toMaster();
 
-// this function is called right before the scheduled time
-function triggerSynth(time) {
-	// the time is the sample-accurate time of the event
-	synth.triggerAttackRelease('C4', '8n', time)
-}
+var distortion = new Tone.Distortion(0.6);
+var tremolo = new Tone.Tremolo().start();
 
-// schedule a few notes
-Tone.Transport.schedule(triggerSynth, 0)
-Tone.Transport.schedule(triggerSynth, '0:1')
-Tone.Transport.schedule(triggerSynth, '0:1:2')
-Tone.Transport.schedule(triggerSynth, '0:1:2:3')
-
-// set the transport to repeat
-Tone.Transport.loopEnd = '1m'
-Tone.Transport.loop = true
+var synth = new Tone.PolySynth(4, Tone.Synth, {
+  oscillator: {
+    type: 'triangle8'
+  },
+  envelope: {
+    attack: 1,
+    decay: 0.5,
+    sustain: 0.1,
+    release: 4
+  }
+}).chain(distortion, tremolo, Tone.Master);
 
 document.addEventListener('keydown', function() {
   const keyName = event.key;
 
   // start/stop the transport
   if (keyName === ' ') {
-    Tone.Transport.toggle()
+    Tone.Transport.toggle();
     console.log("Tone Transport toggled");
-  }
+  } 
+});
+
+document.addEventListener('mousedown', function() {
+  synth.triggerAttack(['C4', 'E4', 'G4', 'B4']);
+});
+
+document.addEventListener('mouseup', function() {
+  synth.triggerRelease();
 });
